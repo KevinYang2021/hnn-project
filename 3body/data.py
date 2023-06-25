@@ -9,7 +9,6 @@ parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parentdir)
 
 
-##### ENERGY #####
 def potential_energy(state):
     total = np.zeros((1, 1, state.shape[2]))
     for i in range(state.shape[0]):
