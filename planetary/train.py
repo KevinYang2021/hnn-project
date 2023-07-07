@@ -23,18 +23,22 @@ def to_pickle(data, path):
         pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-def l1_loss(u, v):
-    return torch.mean((u - v))
+def mse_loss(u, v):
+    squared = (u - v) / u.shape[0]
+    squared = squared ** 2
+    sum = torch.sum(squared)
+    loss = sum * u.shape[0]
+    return loss
 
 
 def get_args():
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument('--nonlinearity', default='tanh', type=str, help='nonlinearity')
-    parser.add_argument('--hidden_dim', default=300, type=int, help='hidden dimension')
+    parser.add_argument('--hidden_dim', default=200, type=int, help='hidden dimension')
     parser.add_argument('--input_dim', default=18, type=int, help='input dimension')
-    parser.add_argument('--learning_rate', default=1e-3, type=float, help='learning rate')
-    parser.add_argument('--batch_size', default=25000, type=int, help='batch size')
-    parser.add_argument('--total_steps', default=20000, type=int, help='total number of gradient steps')
+    parser.add_argument('--learning_rate', default=0.01, type=float, help='learning rate')
+    parser.add_argument('--batch_size', default=120000, type=int, help='batch size')
+    parser.add_argument('--total_steps', default=200000, type=int, help='total number of gradient steps')
     parser.add_argument('--print_every', default=1000, type=int, help='print every')
     parser.add_argument('--name', default='sjs', type=str, help='save name')
     parser.add_argument('--verbose', action='store_true', help='verbose')
@@ -67,7 +71,7 @@ def train(args):
     for step in range(args.total_steps + 1):
         ixs = torch.randperm(x.shape[0])[:args.batch_size]
         dx_hat = model.time_deriv(x[ixs])
-        loss = l1_loss(dx[ixs], dx_hat)
+        loss = mse_loss(dx[ixs], dx_hat)
         loss.backward()
         grad = torch.cat([p.grad.flatten() for p in model.parameters()]).clone()
         optimizer.step()
@@ -75,7 +79,7 @@ def train(args):
 
         test_ixs = torch.randperm(test_x.shape[0])[:args.batch_size]
         test_dx_hat = model.time_deriv(test_x[test_ixs])
-        test_loss = l1_loss(test_dx[test_ixs], test_dx_hat)
+        test_loss = mse_loss(test_dx[test_ixs], test_dx_hat)
 
         stats['train_loss'].append(loss.item())
         stats['test_loss'].append(test_loss.item())
