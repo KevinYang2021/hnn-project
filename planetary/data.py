@@ -60,7 +60,7 @@ def rotate2d(p, theta):
     return (R @ p.reshape(2, 1)).squeeze()
 
 
-def get_orbit(state, update_fn=update, t_points=100, t_span=[0, 2], nbodies=3, **kwargs):
+def get_orbit(state, update_fn=update, t_points=100, t_span=[0, 2], nbodies=2, **kwargs):
     if not 'rtol' in kwargs:
         kwargs['rtol'] = 1e-9
     orbit_settings = locals()
@@ -88,7 +88,7 @@ def get_orbit(state, update_fn=update, t_points=100, t_span=[0, 2], nbodies=3, *
     return orbit, orbit_settings
 
 
-def get_nn_orbit(state, update_fn=update, t_points=100, t_span=[0, 2], nbodies=3, **kwargs):
+def get_nn_orbit(state, update_fn=update, t_points=100, t_span=[0, 2], nbodies=2, **kwargs):
     if not 'rtol' in kwargs:
         kwargs['rtol'] = 1e-9
     orbit_settings = locals()
@@ -126,14 +126,14 @@ def sjs():
     # state[1, 1:3], state[1, 3:5] = p2, v2
     # state[2, 1:3], state[2, 3:5] = p3, v3
     # return state
-    state = np.zeros((3, 7))
-    state[0][0] = 1
-    state[1][0] = 9.543e-4
-    state[2][0] = 2.857e-4
+    state = np.zeros((2, 7))
+    # state[0][0] = 1e-20
+    state[0][0] = 9.543e-4
+    state[1][0] = 2.857e-4
 
-    state[0][1] = 0
-    state[0][2] = 0
-    state[0][3] = 0
+    # state[0][1] = 0
+    # state[0][2] = 0
+    # state[0][3] = 0
 
     # range of sma for jupiter in au [4, 6.5]
     jsma = np.random.uniform(4, 6.5)
@@ -151,9 +151,9 @@ def sjs():
     sinc = np.random.uniform(0, 5)
 
     # range of true anomaly for jupiter in degrees [0, 360]
-    jtrue = np.random.uniform(0, 360)
+    jtrue = np.random.uniform(330, 360)
     # range of true anomaly for saturn in degrees [0, 360]
-    strue = np.random.uniform(0, 360)
+    strue = np.random.uniform(0, 30)
 
     # range of longitude of ascending node for jupiter in degrees [0, 360]
     jlong = 0
@@ -203,13 +203,13 @@ def sjs():
     sy = r * (np.sin(Omega) * np.cos(omega + nu) + np.cos(Omega) * np.sin(omega + nu) * np.cos(i))
     sz = r * (np.sin(i) * np.sin(omega + nu))
 
-    state[1][1] = jx
-    state[1][2] = jy
-    state[1][3] = jz
+    state[0][1] = jx
+    state[0][2] = jy
+    state[0][3] = jz
 
-    state[2][1] = sx
-    state[2][2] = sy
-    state[2][3] = sz
+    state[1][1] = sx
+    state[1][2] = sy
+    state[1][3] = sz
 
     # jupiter has 12.44 to 13.72 km/s or 2.62421 to 2.89423 au/yr
     # saturn has 9.14 to 10.14 km/s or 1.92808 to 2.13903 au/yr
@@ -231,18 +231,18 @@ def sjs():
     svy = sx * svel / np.sqrt(sx ** 2 + sy ** 2)
     svz = 0
 
-    state[1][4] = jvx
-    state[1][5] = jvy
-    state[1][6] = jvz
+    state[0][4] = jvx
+    state[0][5] = jvy
+    state[0][6] = jvz
 
-    state[2][4] = svx
-    state[2][5] = svy
-    state[2][6] = svz
+    state[1][4] = svx
+    state[1][5] = svy
+    state[1][6] = svz
 
     return state
 
 
-def sample_orbits(timesteps=10, samples=50000, nbodies=3, t_span=[0, 10], verbose=True, **kwargs):
+def sample_orbits(timesteps=20, samples=2000, nbodies=2, t_span=[0, 20], verbose=True, **kwargs):
     orbit_settings = locals()
     if verbose:
         print('Sampling orbits...')

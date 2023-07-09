@@ -1,34 +1,15 @@
-import torch, argparse
 import numpy as np
-import os, sys, pickle
+import torch
+from utils import mse_loss, from_pickle, to_pickle
+from nn_models import MLP
+from hnn import hnn
+import argparse
+import os, sys
+from data import get_dataset
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.dirname(THIS_DIR)
 sys.path.append(PARENT_DIR)
-
-from nn_model import MLP
-from hnn import hnn
-from data import get_dataset
-
-
-def from_pickle(path):
-    data = None
-    with open(path, 'rb') as f:
-        data = pickle.load(f)
-    return data
-
-
-def to_pickle(data, path):
-    with open(path, 'wb') as f:
-        pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
-
-
-def mse_loss(u, v):
-    squared = (u - v) / u.shape[0]
-    squared = squared ** 2
-    sum = torch.sum(squared)
-    loss = sum * u.shape[0]
-    return loss
 
 
 def get_args():
@@ -37,8 +18,8 @@ def get_args():
     parser.add_argument('--hidden_dim', default=300, type=int, help='hidden dimension')
     parser.add_argument('--input_dim', default=12, type=int, help='input dimension')
     parser.add_argument('--learning_rate', default=0.001, type=float, help='learning rate')
-    parser.add_argument('--batch_size', default=2000, type=int, help='batch size')
-    parser.add_argument('--total_steps', default=1500, type=int, help='total number of gradient steps')
+    parser.add_argument('--batch_size', default=20000, type=int, help='batch size')
+    parser.add_argument('--total_steps', default=10000, type=int, help='total number of gradient steps')
     parser.add_argument('--print_every', default=1000, type=int, help='print every')
     parser.add_argument('--name', default='sjs', type=str, help='save name')
     parser.add_argument('--verbose', action='store_true', help='verbose')
@@ -52,9 +33,6 @@ def get_args():
 def train(args):
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
-
-    if args.verbose:
-        print("Training HNN")
 
     output_dim = 2
     nn_model = MLP(args.input_dim, args.hidden_dim, output_dim, args.nonlinearity)

@@ -34,7 +34,7 @@ def get_args():
     parser.add_argument('--input_dim', default=12, type=int, help='input dimension')
     parser.add_argument('--learning_rate', default=1e-3, type=float, help='learning rate')
     parser.add_argument('--batch_size', default=1000, type=int, help='batch size')
-    parser.add_argument('--total_steps', default=100000, type=int, help='total number of gradient steps')
+    parser.add_argument('--total_steps', default=10000, type=int, help='total number of gradient steps')
     parser.add_argument('--print_every', default=100, type=int, help='print every')
     parser.add_argument('--name', default='3body', type=str, help='save name')
     parser.add_argument('--verbose', action='store_true', help='verbose')

@@ -73,7 +73,9 @@ def get_orbit(state, update_fn=update, t_points=100, t_span=[0, 2], nbodies=3, *
 
 def random_config(nu, min_radius, max_radius):
     state = np.zeros((3, 5))
-    state[:, 0] = 1
+    state[0][0] = 1
+    state[1][0] = 9.543e-4
+    state[2][0] = 2.857e-4
     p1 = 2 * np.random.rand(2) - 1
     r = np.random.rand() * (max_radius - min_radius) + min_radius
 
