@@ -134,7 +134,7 @@ def sjs():
     return state
 
 
-def sample_orbits(timesteps=20, samples=50000, nbodies=2, t_span=[0, 20], verbose=True, **kwargs):
+def sample_orbits(timesteps=60, samples=50000, nbodies=2, t_span=[0, 20], verbose=True, **kwargs):
     orbit_settings = locals()
     if verbose:
         print('Sampling orbits...')

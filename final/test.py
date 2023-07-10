@@ -10,8 +10,8 @@ import rebound
 
 def get_args():
     return {
-        'nonlinearity': 'tanh', 'hidden_dim': 300, 'input_dim': 12, 'learning_rate': 0.001, 'batch_size': 20000,
-        'total_steps': 10000, 'print_every': 1000, 'name': 'sjs', 'verbose': True, 'field_type': 'solenoidal',
+        'nonlinearity': 'tanh', 'hidden_dim': 300, 'input_dim': 12, 'learning_rate': 0.001, 'batch_size': 120000,
+        'total_steps': 2000, 'print_every': 1000, 'name': 'sjs', 'verbose': True, 'field_type': 'solenoidal',
         'seed': 0, 'save_dir': '/home/kevin/code/project/final'}
 
 
@@ -21,8 +21,9 @@ class ObjectView(object):
 
 args = ObjectView(get_args())
 
-t_points = 10000
-t_span = [0, 5000]
+np.random.seed(int(time.time()))
+t_points = 100
+t_span = [0, 50]
 t_eval = np.linspace(t_span[0], t_span[1], t_points)
 state = sjs()
 
@@ -37,11 +38,11 @@ sim.add(m=1, x=0, y=0, z=0, vx=0, vy=0, vz=0)
 for i in range(0, nbodies - 1):
     sim.add(m=state[i][0], x=state[i][1], y=state[i][2], z=state[i][3], vx=state[i][4], vy=state[i][5], vz=state[i][6])
 sim.integrator = 'whfast'
-sim.dt = 0.01
+sim.dt = 0.001
 sim.move_to_com()
 
 for i in range(1, t_points):
-    sim.integrate(t_eval[i])
+    sim.integrate(t_eval[i], exact_finish_time=0)
     for j in range(0, nbodies):
         real_orbit[j, :, i] = [sim.t, sim.particles[j].x, sim.particles[j].y, sim.particles[j].z,
                                sim.particles[j].vx, sim.particles[j].vy, sim.particles[j].vz]
@@ -146,3 +147,35 @@ print(dx)
 print(rdx)
 
 print(dx - rdx)
+
+# graph energies
+rtot = total_energy(real_orbit)
+htot = total_energy(hnn_orbit)
+rkin = kinetic_energy(real_orbit)
+hkin = kinetic_energy(hnn_orbit)
+rpot = potential_energy(real_orbit)
+hpot = potential_energy(hnn_orbit)
+
+fig = plt.figure(figsize=(10, 10))
+ax = fig.add_subplot(111)
+ax.plot(t_eval, rtot, label='Real')
+ax.plot(t_eval, htot, label='HNN')
+plt.title('Total Energy')
+plt.legend()
+plt.show()
+
+fig = plt.figure(figsize=(10, 10))
+ax = fig.add_subplot(111)
+ax.plot(t_eval, rkin, label='Real')
+ax.plot(t_eval, hkin, label='HNN')
+plt.title('Kinetic Energy')
+plt.legend()
+plt.show()
+
+fig = plt.figure(figsize=(10, 10))
+ax = fig.add_subplot(111)
+ax.plot(t_eval, rpot, label='Real')
+ax.plot(t_eval, hpot, label='HNN')
+plt.title('Potential Energy')
+plt.legend()
+plt.show()
