@@ -46,15 +46,14 @@ def get_accelerations(state, epsilon=0):
 
 
 def update(t, state):
-    state = state.reshape(-1, 7)
+    state = state.reshape(-1, 4)
     deriv = np.zeros_like(state)
-    deriv[:, 1:4] = state[:, 4:7]
-    deriv[:, 4:7] = get_accelerations(state)
+    deriv[:, 1:4] = get_accelerations(state)
     return deriv.reshape(-1)
 
 
 def sjs():
-    state = np.zeros((2, 7))
+    state = np.zeros((2, 4))
     state[0][0] = 9.543e-4
     state[1][0] = 2.857e-4
 
@@ -113,23 +112,23 @@ def sjs():
     state[1][2] = sy
     state[1][3] = sz
 
-    jvel = np.random.uniform(2.62421, 2.89423)
-    svel = np.random.uniform(1.92808, 2.13903)
-
-    jvx = -jy * jvel / np.sqrt(jx ** 2 + jy ** 2)
-    jvy = jx * jvel / np.sqrt(jx ** 2 + jy ** 2)
-    jvz = 0
-
-    svx = -sy * svel / np.sqrt(sx ** 2 + sy ** 2)
-    svy = sx * svel / np.sqrt(sx ** 2 + sy ** 2)
-    svz = 0
-
-    state[0][4] = jvx
-    state[0][5] = jvy
-    state[0][6] = jvz
-    state[1][4] = svx
-    state[1][5] = svy
-    state[1][6] = svz
+    # jvel = np.random.uniform(2.62421, 2.89423)
+    # svel = np.random.uniform(1.92808, 2.13903)
+    #
+    # jvx = -jy * jvel / np.sqrt(jx ** 2 + jy ** 2)
+    # jvy = jx * jvel / np.sqrt(jx ** 2 + jy ** 2)
+    # jvz = 0
+    #
+    # svx = -sy * svel / np.sqrt(sx ** 2 + sy ** 2)
+    # svy = sx * svel / np.sqrt(sx ** 2 + sy ** 2)
+    # svz = 0
+    #
+    # state[0][4] = jvx
+    # state[0][5] = jvy
+    # state[0][6] = jvz
+    # state[1][4] = svx
+    # state[1][5] = svy
+    # state[1][6] = svz
 
     return state
 
@@ -141,7 +140,7 @@ def sample_orbits(timesteps=60, samples=50000, nbodies=2, t_span=[0, 20], verbos
 
     x = []
     dx = []
-    e = []
+    # e = []
     N = timesteps * samples
     while len(x) < N:
         state = sjs()
@@ -151,14 +150,15 @@ def sample_orbits(timesteps=60, samples=50000, nbodies=2, t_span=[0, 20], verbos
                 print("Generated {} / {} orbits".format(len(x), N))
 
         dstate = update(None, state)
-        coords = state.reshape(nbodies, 7).T[1:].flatten()
+        coords = state.reshape(nbodies, 4).T[1:].flatten()
         x.append(coords)
-        dcoords = dstate.reshape(nbodies, 7).T[1:].flatten()
+        dcoords = dstate.reshape(nbodies, 4).T[1:].flatten()
         dx.append(dcoords)
-        shaped_state = state.copy().reshape(nbodies, 7, 1)
-        e.append(total_energy(shaped_state))
+        # shaped_state = state.copy().reshape(nbodies, 7, 1)
+        # e.append(total_energy(shaped_state))
 
-    data = {'coords': np.stack(x)[:N], 'dcoords': np.stack(dx)[:N], 'energy': np.stack(e)[:N]}
+    data = {'coords': np.stack(x)[:N], 'dcoords': np.stack(dx)[:N]}
+    # data = {'coords': np.stack(x)[:N], 'dcoords': np.stack(dx)[:N], 'energy': np.stack(e)[:N]}
     return data, orbit_settings
 
 
