@@ -23,8 +23,8 @@ args = ObjectView(get_args())
 nbodies = (int)(args.input_dim / 3) + 1
 
 np.random.seed(int(time.time()))
-t_points = 100
-t_span = [0, 50]
+t_points = 10000
+t_span = [0, 500]
 t_eval = np.linspace(t_span[0], t_span[1], t_points)
 planets = sjs()
 state = np.zeros((nbodies, 7))
@@ -85,7 +85,7 @@ def load_model(args):
 hnn_model = load_model(args)
 
 
-def model_update(t, state, model):
+def get_paccelerations(t, state, model):
     state = state.reshape(-1, 4)
     deriv = np.zeros_like(state)
     np_x = state[:, 1:]  # drop mass
@@ -100,7 +100,7 @@ hnn_orbit = np.zeros((nbodies, 7, t_points))
 hnn_orbit[:, :, 0] = state
 
 for i in range(1, t_points):
-    dx = model_update(None, hnn_orbit[1:, 0:4, i - 1], hnn_model)
+    dx = get_paccelerations(None, hnn_orbit[1:, 0:4, i - 1], hnn_model)
     dx = dx.reshape(2, 4)
     dx = dx[:, 1:].reshape(-1).reshape((2, 3))
     G = 39.47841760435743
@@ -224,14 +224,15 @@ for i in range(cnt):
     state[2][6] = svz
 
     acc = get_accelerations(state)
-    hnn_acc = model_update(None, planets, hnn_model)
+    hnn_acc = get_paccelerations(None, planets, hnn_model)
     # G = 39.47841760435743
     G = 1
     r = np.linalg.norm(state[1, 1:4] - state[0, 1:4])
     a = -G * state[0, 0] * (state[1, 1:4] - state[0, 1:4]) / r ** 3
     rr = np.linalg.norm(state[2, 1:4] - state[0, 1:4])
     aa = -G * state[0, 0] * (state[2, 1:4] - state[0, 1:4]) / rr ** 3
-    hnn_acc += np.array([0, a[0], a[1], a[2], 0, aa[0], aa[1], aa[2]])
+    # hnn_acc = np.array([0, a[0], a[1], a[2], 0, aa[0], aa[1], aa[2]])
+    acc[1:, :] -= ([[a[0], a[1], a[2]], [aa[0], aa[1], aa[2]]])
 
     acc = acc[1:, :]
     acc = acc.flatten()

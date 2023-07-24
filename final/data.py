@@ -52,6 +52,13 @@ def update(t, state):
     return deriv.reshape(-1)
 
 
+def kep2cart(a, e, i, Omega, omega, nu):
+    r = a * (1 - e ** 2) / (1 + e * np.cos(nu))
+    return np.array([r * (np.cos(Omega) * np.cos(omega + nu) - np.sin(Omega) * np.sin(omega + nu) * np.cos(i)),
+                     r * (np.sin(Omega) * np.cos(omega + nu) + np.cos(Omega) * np.sin(omega + nu) * np.cos(i)),
+                     r * (np.sin(i) * np.sin(omega + nu))])
+
+
 def sjs():
     state = np.zeros((2, 4))
     state[0][0] = 9.543e-4
@@ -63,77 +70,55 @@ def sjs():
     secc = np.random.uniform(0, 0.1)
     jinc = np.random.uniform(0, 3)
     sinc = np.random.uniform(0, 5)
-    jtrue = np.random.uniform(0, 360)
-    strue = np.random.uniform(0, 360)
+    jtrue = np.random.uniform(0, 2 * np.pi)
+    strue = np.random.uniform(0, 2 * np.pi)
     jlong = 0
     slong = 0
     jargp = 0
     sargp = 0
+    state[0][1:4] = kep2cart(jsma, jecc, jinc, jlong, jargp, jtrue)
+    state[1][1:4] = kep2cart(ssma, secc, sinc, slong, sargp, strue)
+    return state
 
-    a = jsma
-    e = jecc
-    i = jinc
-    Omega = jlong
-    omega = jargp
-    nu = jtrue
 
-    i = np.deg2rad(i)
-    Omega = np.deg2rad(Omega)
-    omega = np.deg2rad(omega)
-    nu = np.deg2rad(nu)
+def gen_orbital_elements(sma, ecc, inc, true, long, argp):
+    return np.random.uniform(sma[0], sma[1]), np.random.uniform(ecc[0], ecc[1]), np.deg2rad(
+        np.random.uniform(inc[0], inc[1])), np.deg2rad(np.random.uniform(true[0], true[1])), np.deg2rad(
+        np.random.uniform(long[0], long[1])), np.deg2rad(np.random.uniform(argp[0], argp[1]))
 
-    r = a * (1 - e ** 2) / (1 + e * np.cos(nu))
-    jx = r * (np.cos(Omega) * np.cos(omega + nu) - np.sin(Omega) * np.sin(omega + nu) * np.cos(i))
-    jy = r * (np.sin(Omega) * np.cos(omega + nu) + np.cos(Omega) * np.sin(omega + nu) * np.cos(i))
-    jz = r * (np.sin(i) * np.sin(omega + nu))
 
-    a = ssma
-    e = secc
-    i = sinc
-    Omega = slong
-    omega = sargp
-    nu = strue
+def solarsys():
+    state = np.zeros((8, 4))
+    state[0][0] = 1.660e-07
+    state[1][0] = 2.448e-06
+    state[2][0] = 3.004e-06
+    state[3][0] = 3.227e-07
+    state[4][0] = 9.543e-04
+    state[5][0] = 2.857e-04
+    state[6][0] = 4.366e-05
+    state[7][0] = 5.151e-05
 
-    i = np.deg2rad(i)
-    Omega = np.deg2rad(Omega)
-    omega = np.deg2rad(omega)
-    nu = np.deg2rad(nu)
-
-    r = a * (1 - e ** 2) / (1 + e * np.cos(nu))
-    sx = r * (np.cos(Omega) * np.cos(omega + nu) - np.sin(Omega) * np.sin(omega + nu) * np.cos(i))
-    sy = r * (np.sin(Omega) * np.cos(omega + nu) + np.cos(Omega) * np.sin(omega + nu) * np.cos(i))
-    sz = r * (np.sin(i) * np.sin(omega + nu))
-
-    state[0][1] = jx
-    state[0][2] = jy
-    state[0][3] = jz
-
-    state[1][1] = sx
-    state[1][2] = sy
-    state[1][3] = sz
-
-    # jvel = np.random.uniform(2.62421, 2.89423)
-    # svel = np.random.uniform(1.92808, 2.13903)
-    #
-    # jvx = -jy * jvel / np.sqrt(jx ** 2 + jy ** 2)
-    # jvy = jx * jvel / np.sqrt(jx ** 2 + jy ** 2)
-    # jvz = 0
-    #
-    # svx = -sy * svel / np.sqrt(sx ** 2 + sy ** 2)
-    # svy = sx * svel / np.sqrt(sx ** 2 + sy ** 2)
-    # svz = 0
-    #
-    # state[0][4] = jvx
-    # state[0][5] = jvy
-    # state[0][6] = jvz
-    # state[1][4] = svx
-    # state[1][5] = svy
-    # state[1][6] = svz
+    a, e, i, true, long, argp = gen_orbital_elements([0.3, 0.5], [0.0, 0.2], [0, 8], [0, 360], [0, 0], [0, 0])
+    state[0][1:4] = kep2cart(a, e, i, long, argp, true)
+    a, e, i, true, long, argp = gen_orbital_elements([0.6, 0.8], [0.0, 0.02], [0, 4], [0, 360], [0, 0], [0, 0])
+    state[1][1:4] = kep2cart(a, e, i, long, argp, true)
+    a, e, i, true, long, argp = gen_orbital_elements([0.9, 1.1], [0.0, 0.04], [0, 1], [0, 360], [0, 0], [0, 0])
+    state[2][1:4] = kep2cart(a, e, i, long, argp, true)
+    a, e, i, true, long, argp = gen_orbital_elements([1.2, 1.4], [0.0, 0.06], [0, 1], [0, 360], [0, 0], [0, 0])
+    state[3][1:4] = kep2cart(a, e, i, long, argp, true)
+    a, e, i, true, long, argp = gen_orbital_elements([4, 6.5], [0.0, 0.08], [0, 3], [0, 360], [0, 0], [0, 0])
+    state[4][1:4] = kep2cart(a, e, i, long, argp, true)
+    a, e, i, true, long, argp = gen_orbital_elements([8, 11], [0.0, 0.1], [0, 5], [0, 360], [0, 0], [0, 0])
+    state[5][1:4] = kep2cart(a, e, i, long, argp, true)
+    a, e, i, true, long, argp = gen_orbital_elements([17, 21], [0.0, 0.08], [0, 1], [0, 360], [0, 0], [0, 0])
+    state[6][1:4] = kep2cart(a, e, i, long, argp, true)
+    a, e, i, true, long, argp = gen_orbital_elements([28, 32], [0.0, 0.01], [0, 4], [0, 360], [0, 0], [0, 0])
+    state[7][1:4] = kep2cart(a, e, i, long, argp, true)
 
     return state
 
 
-def sample_orbits(timesteps=60, samples=50000, nbodies=2, t_span=[0, 20], verbose=True, **kwargs):
+def sample_sjs(timesteps=60, samples=50000, nbodies=2, t_span=[0, 20], verbose=True, **kwargs):
     orbit_settings = locals()
     if verbose:
         print('Sampling orbits...')
@@ -143,7 +128,7 @@ def sample_orbits(timesteps=60, samples=50000, nbodies=2, t_span=[0, 20], verbos
     # e = []
     N = timesteps * samples
     while len(x) < N:
-        state = sjs()
+        state = solarsys()
 
         if verbose:
             if len(x) % 1000 == 0:
@@ -162,8 +147,37 @@ def sample_orbits(timesteps=60, samples=50000, nbodies=2, t_span=[0, 20], verbos
     return data, orbit_settings
 
 
-def make_dataset(test_split=0.15, **kwargs):
-    data, settings = sample_orbits(**kwargs)
+def sample_solarsys(timesteps=60, samples=50000, nbodies=8, t_span=[0, 20], verbose=True, **kwargs):
+    orbit_settings = locals()
+    if verbose:
+        print('Sampling orbits...')
+
+    x = []
+    dx = []
+    # e = []
+    N = timesteps * samples
+    while len(x) < N:
+        state = solarsys()
+
+        if verbose:
+            if len(x) % 1000 == 0:
+                print("Generated {} / {} orbits".format(len(x), N))
+
+        dstate = update(None, state)
+        coords = state.reshape(nbodies, 4).T[1:].flatten()
+        x.append(coords)
+        dcoords = dstate.reshape(nbodies, 4).T[1:].flatten()
+        dx.append(dcoords)
+
+    data = {'coords': np.stack(x)[:N], 'dcoords': np.stack(dx)[:N]}
+    return data, orbit_settings
+
+
+def make_dataset(name, test_split=0.15, **kwargs):
+    if (name == 'sjs'):
+        data, settings = sample_sjs(**kwargs)
+    elif (name == 'solarsys'):
+        data, settings = sample_solarsys(**kwargs)
     split_ix = int(data['coords'].shape[0] * test_split)
     split_data = {}
     for k, v in data.items():
@@ -179,7 +193,7 @@ def get_dataset(name, save_dir, **kwargs):
         data = from_pickle(path)
         print("Loaded dataset from {}".format(path))
     except:
-        data, settings = make_dataset(**kwargs)
+        data, settings = make_dataset(name, **kwargs)
         to_pickle(data, path)
         print("Saved dataset to {}".format(path))
 
