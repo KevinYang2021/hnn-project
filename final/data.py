@@ -31,7 +31,7 @@ def total_energy(state):
     return potential_energy(state) + kinetic_energy(state)
 
 
-def get_accelerations(state, epsilon=0):
+def get_accelerations(state, epsilon=1e-12):
     net_accs = []
     for i in range(state.shape[0]):
         other_bodies = np.concatenate([state[:i, :], state[i + 1:, :]], axis=0)
